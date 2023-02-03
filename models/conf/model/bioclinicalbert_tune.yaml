@@ -1,0 +1,28 @@
+defaults:
+  - bioclinicalbert
+
+tune:
+  epochs:
+    lower: 2
+    upper: 10
+  emergency_classifier_head_weight:
+    lower: 0.0
+    upper: 2.0
+  accumulate_grad_batches:
+    lower: 1
+    upper: 36
+  learning_rate:
+    lower: 5e-6
+    upper: 5e-4
+  weight_decay:
+    lower: 1e-6
+    upper: 1e-3
+  dropout:
+    lower: 0.0
+    upper: 0.5
+    q: 0.05
+  gradient_clip_val: [0, 0.5]
+  label_smoothing_alpha:
+    lower: 0.0
+    upper: 0.25
+    q: 0.05

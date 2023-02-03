@@ -1,0 +1,40 @@
+rf:
+  procedure: 1
+  diagnosis: 1
+  hpi: 1
+  ros: 1
+  pmsh: 1
+  meds: 1
+  note: 1
+  note512: 2
+svm:
+  procedure: 5
+  diagnosis: 2
+  hpi: 2
+  ros: 4
+  pmsh: 1
+  meds: 1
+  note: 1
+  note512: 2
+fasttext:
+  procedure: 9
+  diagnosis: 2
+  hpi: 4
+  ros: 2
+  pmsh: 2
+  meds: 2
+  note: 2
+  note512: 3
+bioclinicalbert:
+  procedure: 2
+  diagnosis: 2
+  hpi: 17
+  ros: 2
+  pmsh: 2
+  meds: 2
+  note: 3
+  note512: 1
+age_classifier:
+  note512: 1
+random_classifier:
+  note512: 1

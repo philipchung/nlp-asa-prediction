@@ -1,0 +1,36 @@
+rf:
+  procedure: 920c9f81-4a72-41b0-8033-2d912065ba6b
+  diagnosis: 355b9c85-ce63-4f12-8e10-eb21fd8be5b2
+  hpi: fdc21133-1198-49df-be38-5a8c49a25393
+  ros: 7b063ecb-43cd-4e19-b22a-f0bd6956e9c0
+  pmsh: e0d0f87d-eb53-4526-ab8d-4c6625f5256c
+  meds: 35895214-ac5a-469c-aaf8-668544b1b5b9
+  note: 6d2d6ff4-63f3-4d17-be11-d8566266f24d
+  note512: c27ec9e1-89f0-4390-b062-984adcd448c9
+svm:
+  procedure: 0b409201-afa4-4781-96aa-0a8557380864
+  diagnosis: 0f564873-d7df-48ed-af18-11bbc9ca0123
+  hpi: cd8f378c-8fa3-43c4-b886-191f96684eed
+  ros: 7d1d8c7d-6081-4f56-be39-48ceaf66a191
+  pmsh: 00b41caf-a9ac-481b-af34-f2343b68ba87
+  meds: bbd303dd-e831-46df-96a3-33cf550f3cc6
+  note: 7da76bd4-2aba-4e81-8c1c-3b863f549f82
+  note512: d9af0484-d416-43ec-93e5-583b08bf1d5e
+fasttext:
+  procedure: 42fea5fe-21fc-4a17-a788-1c7dcc0f9a59
+  diagnosis: 6f35026c-8bf6-4a93-a645-7bf9be6a93ab
+  hpi: b3abe399-5a0b-4e1b-a8c2-4364ed90e27c
+  ros: a16604a5-b841-4227-b2ff-fa204176e02e
+  pmsh: a03a500e-f939-4602-9ffa-bc4fd6107c4e
+  meds: 8d037cdc-e2ff-42dc-bf84-b4248e04531e
+  note: 6e791910-ae40-4317-b426-9d925fab93ad
+  note512: 4c427cdf-d0e2-42f1-a000-5599ea5c8e34
+bioclinicalbert:
+  procedure: 5c253d6e-1275-4962-8d6a-11faf3ea1444
+  diagnosis: 28a3fbeb-aa8c-42bb-8136-e924646a25f8
+  hpi: bf58dc92-26ed-4662-813e-1d76db9ce5f3
+  ros: 6eeadded-afc7-45f0-a2eb-81bbea80aaa6
+  pmsh: 2aa931cf-7e25-4856-8db9-90fd8d5c4748
+  meds: d2084482-5b2a-4a3e-91ad-75ac8347da86
+  note: 90e55d17-79c1-44f9-b9df-a832a94b7723
+  note512: 90d9b3d8-7400-4bb1-b4a2-27f200d24c57

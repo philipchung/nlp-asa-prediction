@@ -1,0 +1,9 @@
+defaults:
+  - cpu_base
+
+params:
+  num_trials: 5
+stopper:
+  std: 0.05
+  top: 3
+  patience: 0

@@ -1,0 +1,56 @@
+name: ASA Prediction from Pre-Surgical Note Text.
+
+python_env: requirements.txt
+
+# Call entry points from project root directory
+# Hydra configurations are stored in "models/conf" directory and can be optionally overridden when calling commands
+entry_points:
+  # Random Forest - Train & Validate
+  models/rf/train:
+    command: "python models/rf/train.py"
+  # Random Forest - Hyperparameter Tune
+  models/rf/tune:
+    command: "python models/rf/tune.py"
+  # Random Forest - Train & Evaluate on Test Set
+  models/rf/train_evaluate:
+    command: "python models/rf/train_evaluate.py"
+
+  # Support Vector Machine - Train & Validate
+  models/svm/train:
+    command: "python models/svm/train.py"
+  # Support Vector Machine - Hyperparameter Tune
+  models/svm/tune:
+    command: "python models/svm/tune.py"
+  # Support Vector Machine - Train & Evaluate on Test Set
+  models/svm/train_evaluate:
+    command: "python models/svm/train_evaluate.py"
+
+  # Fasttext - Train & Validate
+  models/fasttext/train:
+    command: "python models/fasttext/train.py"
+  # Fasttext - Hyperparameter Tune
+  models/fasttext/tune:
+    command: "python models/fasttext/tune.py"
+  # Fasttext - Train & Evaluate on Test Set
+  models/fasttext/train_evaluate:
+    command: "python models/fasttext/train_evaluate.py"
+  # FastText - SHAP Explanations
+  models/interpret/shap_fasttext:
+    command: "python models/interpret/shap_fasttext.py"
+
+  # BioClinicalBERT - Train & Validate
+  models/bert/train:
+    command: "python models/bert/train.py"
+  # BioClinicalBERT - Hyperparameter Tune (supports 4 concurrent trials on machine w/ 4 GPUs)
+  models/bert/tune:
+    command: "python models/bert/tune.py"
+  # BioClinicalBERT - Train & Evaluate on Test Set
+  models/bert/train_evaluate:
+    command: "python models/bert/train_evaluate.py"
+  # BioClinicalBERT - SHAP Explanations
+  models/interpret/shap_clinicalbert:
+    command: "python models/interpret/shap_clinicalbert.py"
+
+  # Baseline Models (Random Classifier & Age Classifier) - Train, Validate, Evaluate on Test set
+  models/baseline/train_evaluate:
+    command: "python models/baseline/train_evaluate.py"

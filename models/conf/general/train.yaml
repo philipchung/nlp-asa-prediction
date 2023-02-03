@@ -1,0 +1,4 @@
+defaults:
+  - base
+
+job_type: "train"

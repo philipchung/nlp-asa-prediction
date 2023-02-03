@@ -1,0 +1,27 @@
+defaults:
+  - fasttext
+
+params:
+  verbose: 1
+tune:
+  lr:
+    lower: 0.01
+    upper: 0.5
+  dim:
+    lower: 100
+    upper: 300
+    q: 50
+  ws:
+    lower: 5
+    upper: 15
+    q: 2
+  epoch:
+    lower: 5
+    upper: 50
+    q: 5
+  neg:
+    lower: 5
+    upper: 10
+  lrUpdateRate:
+    lower: 10
+    upper: 1000

@@ -1,0 +1,13 @@
+general:
+  project_root: null
+  output_dir: null
+  checkpoint_dir: null
+model_type: "bioclinicalbert"
+task_name: "note-asa"
+seq_max_length: 512
+tokenizer: "emilyalsentzer/Bio_ClinicalBERT"
+seed: 42
+best_model_versions_path: null
+save_path: null
+log_explanation: true
+explanation_run_name: null

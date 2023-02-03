@@ -1,0 +1,31 @@
+model_type: "bioclinicalbert"
+data:
+  input_feature_name: "input_text"
+  output_label_name: "asa_label"
+  seq_max_length: ${model.params.seq_max_length}
+params:
+  # Model
+  pretrained_model: "emilyalsentzer/Bio_ClinicalBERT"
+  asa_classifier_head_weight: 1.0
+  emergency_classifier_head_weight: 0.6098
+  # Train Settings
+  epochs: 2
+  batch_size: 24
+  accumulate_grad_batches: 8 # lightning.trainer
+  seq_max_length: 512
+  # Optimizer
+  optimizer: AdamW
+  learning_rate: 0.0001397
+  weight_decay: 0.0002137
+  adam_eps: 1e-6
+  learning_rate_schedule: null
+  # Regularization
+  dropout: 0.1
+  label_smoothing_alpha: 0
+  # Gradient Clipping
+  gradient_clip_val: 0 # lightning.trainer
+  gradient_clip_algorithm: "norm" # lightning.trainer
+  # Stochastic Weighted Averaging
+  swa_lrs: 1e-2
+  swa_epoch_start: 1.0
+  swa_annealing_epochs: 0

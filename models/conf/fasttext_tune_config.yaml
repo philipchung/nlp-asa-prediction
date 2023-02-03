@@ -1,0 +1,8 @@
+defaults:
+  - fasttext_config
+  - tune: fasttext
+  - objective: mcc
+  - override general: tune_export_dataset
+  - override model: fasttext_tune
+  - override mlflow: tune
+  - override metrics: tune

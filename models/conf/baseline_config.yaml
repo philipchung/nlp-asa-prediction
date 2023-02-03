@@ -1,0 +1,7 @@
+defaults:
+  - general: train
+  - task: note512-asa
+  - mlflow: baseline
+  - datamodule: bioclinicalbert
+  - model: baseline
+  - metrics: all

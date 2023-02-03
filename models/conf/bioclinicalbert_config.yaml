@@ -1,0 +1,10 @@
+defaults:
+  - general: train
+  - task: hpi-asa
+  - mlflow: base
+  - datamodule: bioclinicalbert
+  - model: bioclinicalbert
+  - lightning: base
+  - objective: mcc
+  - metrics: all
+  - evaluate: base

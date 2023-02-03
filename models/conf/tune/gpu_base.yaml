@@ -1,0 +1,34 @@
+# Configuration for running up to 4 trials on GPU at a time
+# On a machine with 1 GPU, this config utilizes 1 GPU
+# On a machine with 4 GPUs, this config utilizes 4 GPUs concurrently
+resource:
+  cpu: 4
+  gpu: 1
+search:
+  max_concurrent: 4
+scheduler:
+  grace_period: 1
+  reduction_factor: 3
+stopper:
+  metric: ${objective.metric}
+  mode: ${objective.mode}
+  std: 0.001
+  top: 10
+  patience: 0
+reporter:
+  sort_by_metric: false
+  max_report_frequency: 60
+objective:
+  metric: ${objective.metric}
+  mode: ${objective.mode}
+params:
+  num_trials: ???
+  local_dir: ${general.output_dir}
+  max_failures: -1
+  fail_fast: false
+  resume: false
+  reuse_actors: false
+  raise_on_failed_trial: true
+  log_to_file: true
+  verbose: 2
+  seed: ${general.seed}

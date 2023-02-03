@@ -1,0 +1,10 @@
+defaults:
+  - general: train
+  - task: hpi-asa
+  - mlflow: base
+  - datamodule: dischargesummarybert
+  - model: dischargesummarybert
+  - lightning: base
+  - objective: mcc
+  - metrics: all
+  - evaluate: base

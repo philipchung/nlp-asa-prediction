@@ -1,0 +1,8 @@
+defaults:
+  - svm_config
+  - tune: svm
+  - objective: mcc
+  - override general: tune_export_dataset
+  - override model: svm_tune
+  - override mlflow: tune
+  - override metrics: tune

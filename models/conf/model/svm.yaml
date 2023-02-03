@@ -1,0 +1,18 @@
+model_type: "svm"
+data:
+  input_feature_name: "input_text"
+  output_label_name: "asa_label"
+  seq_max_length: 512
+params:
+  penalty: "l2"
+  loss: "squared_hinge"
+  dual: true
+  tol: 1e-4
+  C: 1.0
+  multi_class: "crammer_singer"
+  fit_intercept: true
+  intercept_scaling: 1.0
+  class_weight: "balanced"
+  verbose: 1
+  random_state: ${general.seed}
+  max_iter: 10000

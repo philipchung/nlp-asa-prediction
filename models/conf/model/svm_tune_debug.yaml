@@ -1,0 +1,5 @@
+defaults:
+  - svm_tune
+
+params:
+  max_iter: 100

@@ -1,0 +1,9 @@
+dataset_name: "hpi-pmsh-ros-meds-asa"
+task_name: ${task.task_name}
+data_dir: ${general.data_dir}
+dataloader_num_workers: 4
+tokenizer: "emilyalsentzer/Bio_ClinicalBERT"
+seed: ${general.seed}
+asa_class_weights: null
+emergency_class_weights: null
+prepare_data_per_node: false

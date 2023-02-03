@@ -1,0 +1,7 @@
+defaults:
+  - dischargesummarybert_config
+  - tune: bert
+  - override general: tune_export_dataset
+  - override model: dischargesummarybert_tune
+  - override mlflow: tune
+  - override metrics: tune

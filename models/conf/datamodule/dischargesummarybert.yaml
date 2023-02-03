@@ -1,0 +1,4 @@
+defaults:
+  - bioclinicalbert
+
+tokenizer: "emilyalsentzer/Bio_Discharge_Summary_BERT"

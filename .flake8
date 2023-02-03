@@ -1,0 +1,21 @@
+[flake8]
+max-line-length = 120
+ignore = 
+    # whitespace before ':'
+    E203,
+    # block comment should start with '# '
+    E265,
+    # too many leading '#' for block comment
+    E266,
+    # expected 2 blank lines, found 1
+    E302,
+    # multiple statements on one line (colon)
+    E701,
+    # line break before binary operator
+    W503
+# module imported but unused
+per-file-ignores = __init__.py: F401
+# ‘from module import *’ used; unable to detect undefined names
+per-file-ignores = __init__.py: F403
+# name may be undefined, or defined from star imports: module
+per-file-ignores = __init__.py: F405

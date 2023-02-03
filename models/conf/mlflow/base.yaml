@@ -1,0 +1,11 @@
+experiment_name: "${model.model_type}_${task.task_name}${mlflow.suffix}"
+suffix: "_1"
+registered_model_name: "${model.model_type}_${task.task_name}"
+log_model: true
+
+# Attributes to be dynamically populated by training script
+run_name: null
+experiment_id: null
+nested: false
+tags: null
+description: null

@@ -1,0 +1,46 @@
+whitelist:
+  loss:
+    - CrossEntropyLoss
+    - HingeLoss
+    - SquaredHingeLoss
+  classwise:
+    - TP
+    - FP
+    - TN
+    - FN
+    - Support
+    - Precision
+    - Recall
+    - F1
+    - AUPRC
+    - AUROC
+  aggregate:
+    - Precision/Micro
+    - Precision/Macro
+    - Precision/Weighted
+    - Recall/Micro
+    - Recall/Macro
+    - Recall/Weighted
+    - F1/Micro
+    - F1/Macro
+    - F1/Weighted
+    - MCC/MCC
+    - CohenKappa/Unweighted
+    - CohenKappa/WeightedLinear
+    - CohenKappa/WeightedQuadratic
+    - AUPRC/Macro
+    - AUPRC/Weighted
+    - PrecisionRecallCurve
+    - ROC
+    - AUROC/Macro
+    - AUROC/Weighted
+    - AUROC/AUCmu
+  confusion:
+    - ConfusionMatrix/Raw
+    - ConfusionMatrix/NormalizeOverTargets
+    - ConfusionMatrix/NormalizeOverPredictions
+    - ConfusionMatrix/NormalizeOverAll
+  examples:
+    - Examples/Easiest
+    - Examples/Hardest
+examples_top_k: 10

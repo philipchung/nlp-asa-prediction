@@ -1,0 +1,7 @@
+defaults:
+  - svm
+
+tune:
+  C:
+    lower: 1e-1
+    upper: 1e2

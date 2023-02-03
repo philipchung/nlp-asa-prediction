@@ -1,0 +1,13 @@
+defaults:
+  - rf_tune
+
+params:
+  verbose: 2
+tune:
+  n_estimators:
+    lower: 5
+    upper: 25
+    q: 5
+  max_samples:
+    lower: 0.05
+    upper: 0.1

@@ -1,0 +1,13 @@
+defaults:
+  - rf
+
+params:
+  verbose: 2
+tune:
+  n_estimators:
+    lower: 100
+    upper: 1000
+    q: 25
+  max_samples:
+    lower: 0.25
+    upper: 1.00

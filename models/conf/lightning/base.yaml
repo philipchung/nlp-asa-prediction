@@ -1,0 +1,35 @@
+trainer:
+  # Train Settings
+  min_epochs: null
+  max_epochs: ${model.params.epochs}
+  accumulate_grad_batches: ${model.params.accumulate_grad_batches}
+  gradient_clip_val: ${model.params.gradient_clip_val}
+  gradient_clip_algorithm: ${model.params.gradient_clip_algorithm}
+  # Validation Evaluation
+  check_val_every_n_epoch: 1
+  # GPU
+  strategy: null
+  accelerator: "gpu"
+  devices: "auto"
+  auto_select_gpus: false
+  precision: 16
+  amp_backend: "native"
+  deterministic: true # may slow training
+  # Logging
+  log_every_n_steps: 50
+  profiler: "simple"
+  enable_progress_bar: true
+  enable_model_summary: true
+  enable_checkpointing: true
+  # Development Settings
+  fast_dev_run: false
+  limit_train_batches: 1.0
+  limit_val_batches: 1.0
+  limit_test_batches: 1.0
+  num_sanity_val_steps: 0
+model_checkpoint:
+  monitor: ${objective.metric}
+  mode: ${objective.mode}
+  save_last: true
+  save_top_k: 3
+  save_weights_only: true

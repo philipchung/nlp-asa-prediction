@@ -1,0 +1,5 @@
+model_type: "baseline"
+data:
+  input_feature_name: "input_text"
+  output_label_name: "asa_label"
+  seq_max_length: 512

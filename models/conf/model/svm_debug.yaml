@@ -1,0 +1,5 @@
+defaults:
+  - svm
+
+params:
+  max_iter: 100

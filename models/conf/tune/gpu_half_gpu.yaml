@@ -1,0 +1,12 @@
+# Configuration for running 2 concurrent trials on a single GPU
+# Sum of all trials cannot exceede total GPU Memory
+
+defaults:
+  - gpu_base
+
+# Overrides for using half GPU per trial
+resource:
+  cpu: 4
+  gpu: 0.5
+search:
+  max_concurrent: 2

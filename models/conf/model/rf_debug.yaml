@@ -1,0 +1,6 @@
+defaults:
+  - rf
+
+params:
+  n_estimators: 5
+  max_samples: 0.1

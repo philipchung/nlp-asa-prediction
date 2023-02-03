@@ -1,0 +1,25 @@
+model_type: "fasttext"
+data:
+  input_feature_name: "input_text"
+  output_label_name: "asa_label"
+  seq_max_length: 512
+  fasttext_data_export_path: null
+params:
+  input: null
+  lr: 0.1
+  dim: 100
+  ws: 5
+  epoch: 5
+  minCount: 1
+  minCountLabel: 1
+  minn: 0
+  maxn: 0
+  neg: 5
+  wordNgrams: 1
+  loss: "softmax"
+  bucket: 2000000
+  thread: 12
+  lrUpdateRate: 100
+  t: 0.0001
+  label: "__label__"
+  verbose: 2

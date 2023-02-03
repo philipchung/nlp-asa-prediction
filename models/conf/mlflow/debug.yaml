@@ -1,0 +1,7 @@
+defaults:
+  - base
+
+experiment_name: "debug"
+suffix: ""
+registered_model_name: "debug"
+log_model: false

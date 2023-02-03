@@ -1,0 +1,7 @@
+defaults:
+  - base
+
+experiment_name: "baseline"
+suffix: null
+registered_model_name: null
+log_model: true

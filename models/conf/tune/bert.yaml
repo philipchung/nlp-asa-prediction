@@ -1,0 +1,12 @@
+defaults:
+  - gpu_base
+
+# Note: GPU_base configuration enables 4 concurrent trials (e.g. single node w/ 4 GPUs)
+
+# Max num trials = 20 * num_hyperparameters (8 for BERT model tuning)
+# Stopper must reach plateau objective for 3 consecutive trials
+params:
+  num_trials: 160
+stopper:
+  std: 0.001
+  patience: 3

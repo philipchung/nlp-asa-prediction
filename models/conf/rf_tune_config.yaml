@@ -1,0 +1,8 @@
+defaults:
+  - rf_config
+  - tune: rf
+  - objective: mcc
+  - override general: tune_export_dataset
+  - override model: rf_tune
+  - override mlflow: tune
+  - override metrics: tune

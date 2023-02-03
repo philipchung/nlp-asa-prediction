@@ -1,0 +1,10 @@
+defaults:
+  - cpu_base
+
+# Max num trials = 20 * num_hyperparameters (6 for fasttext model tuning)
+# Stopper must reach plateau objective for 3 consecutive trials
+params:
+  num_trials: 120
+stopper:
+  std: 0.001
+  patience: 3

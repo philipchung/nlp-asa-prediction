@@ -1,0 +1,32 @@
+# Uses all CPU cores in single ray trial, only one trial at a time
+resource:
+  cpu: -1
+  gpu: 0
+search:
+  max_concurrent: 1
+scheduler:
+  grace_period: 1
+  reduction_factor: 3
+stopper:
+  metric: ${objective.metric}
+  mode: ${objective.mode}
+  std: 0.001
+  top: 10
+  patience: 0
+reporter:
+  sort_by_metric: false
+  max_report_frequency: 60
+objective:
+  metric: ${objective.metric}
+  mode: ${objective.mode}
+params:
+  num_trials: ???
+  local_dir: ${general.output_dir}
+  max_failures: -1
+  fail_fast: false
+  resume: false
+  reuse_actors: false
+  raise_on_failed_trial: true
+  log_to_file: true
+  verbose: 2
+  seed: ${general.seed}

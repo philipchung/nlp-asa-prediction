@@ -1,0 +1,8 @@
+defaults:
+  - general: train
+  - task: hpi-asa
+  - mlflow: base
+  - datamodule: bioclinicalbert
+  - model: svm
+  - metrics: all
+  - evaluate: base
