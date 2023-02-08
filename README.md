@@ -2,7 +2,7 @@
 
 This repository contains code for experiments and figures for the manuscript: 
 
-Preprint: [Prediction of American Society of Anesthesiologists Physical Status Classification from Preoperative Clinical Text Narratives Using Natural Language Processing]((https://www.medrxiv.org/content/10.1101/2023.02.03.23285402v1))
+Preprint: [Prediction of American Society of Anesthesiologists Physical Status Classification from Preoperative Clinical Text Narratives Using Natural Language Processing](https://www.medrxiv.org/content/10.1101/2023.02.03.23285402v1)
 Philip Chung, Christine T. Fong, Andrew M. Walters, Meliha Yetisgen, Vikas N. O'Reilly-Shah
 medRxiv 2023.02.03.23285402; doi: https://doi.org/10.1101/2023.02.03.23285402
 
