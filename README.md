@@ -1,5 +1,11 @@
 # ASA-PS Prediction from Clinical Text
 
+This repository contains code for experiments and figures for the manuscript: 
+
+Preprint: [Prediction of American Society of Anesthesiologists Physical Status Classification from Preoperative Clinical Text Narratives Using Natural Language Processing]((https://www.medrxiv.org/content/10.1101/2023.02.03.23285402v1))
+Philip Chung, Christine T. Fong, Andrew M. Walters, Meliha Yetisgen, Vikas N. O'Reilly-Shah
+medRxiv 2023.02.03.23285402; doi: https://doi.org/10.1101/2023.02.03.23285402
+
 ## Task
 
 In this project, we aim to show how free-text clinical narratives from medical notes and free-text from surgery booking fields can be used for perioperative risk stratification.  We use the American Society of Anesthesiologists Physical Status Classification (ASA-PS) score as a surrogate for a patient's underlying medical complexity and general state of health.
