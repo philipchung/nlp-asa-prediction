@@ -27,7 +27,7 @@ class_labels = results["asa_class_names"]
 #%% [markdown]
 # ## ROC Curves
 #%%
-num_thresholds = 1000
+num_thresholds = None
 
 
 def compute_roc(
@@ -178,7 +178,7 @@ sup_title = p1.fig.suptitle(
 # Share x-label & y-label
 sup_xlabel = p1.fig.supxlabel("False Positive Rate", x=0.43)
 sup_ylabel = p1.fig.supylabel("True Positive Rate")
-p1.set(xlabel=None, ylabel=None)
+p1.set(xlabel=None, ylabel=None, ylim=(0, 1), xlim=(0, 1))
 
 for ax in p1.axes.flat:
     # Turn on minor grids
@@ -206,7 +206,7 @@ p1.fig.savefig(
 #%% [markdown]
 # ## Precision-Recall Curves
 #%%
-num_thresholds = 1000
+num_thresholds = None
 
 
 def compute_pr(
@@ -310,6 +310,25 @@ random_classifier_pr = reformat_pr(
     pr_dict=random_classifier_pr, class_names=class_labels
 )
 random_classifier_pr["Model"] = "Random Classifier"
+
+
+def force_precision_to_class_frequency(df: pd.DataFrame) -> pd.DataFrame:
+    """Corrects random classifier PR curve to be a flat horizontal line corresponding
+    to the class's frequency.
+    In torchmetrics, when computing PR curves, initial Precision always starts at 0.0 or 1.0.
+    But will result in a non-truthful curve.
+    """
+    precision_class_frequency = df.loc[df.Recall == 1.0].Precision.iloc[0]
+    df.Precision = precision_class_frequency
+    return df
+
+
+random_classifier_pr = random_classifier_pr.groupby("ASA", group_keys=False).apply(
+    force_precision_to_class_frequency
+)
+
+
+# random_classifier_pr = random_classifier_pr.loc[random_classifier_pr.Recall == 1.0]
 pr_data += [random_classifier_pr]
 
 # Combine All Precision-Recall Data into Single DataFrame
@@ -355,7 +374,7 @@ sup_title = p2.fig.suptitle("Precision-Recall Curves for Note512 Task", fontsize
 # Share x-label & y-label
 sup_xlabel = p2.fig.supxlabel("Recall", x=0.43)
 sup_ylabel = p2.fig.supylabel("Precision")
-p2.set(xlabel=None, ylabel=None)
+p2.set(xlabel=None, ylabel=None, ylim=(0, 1), xlim=(0, 1))
 
 # Turn on minor grids
 for ax in p2.axes.flat:
