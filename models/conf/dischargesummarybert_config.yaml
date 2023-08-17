@@ -6,5 +6,5 @@ defaults:
   - model: dischargesummarybert
   - lightning: base
   - objective: mcc
-  - metrics: all
+  - metrics: default
   - evaluate: base

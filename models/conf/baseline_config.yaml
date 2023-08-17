@@ -4,4 +4,4 @@ defaults:
   - mlflow: baseline
   - datamodule: bioclinicalbert
   - model: baseline
-  - metrics: all
+  - metrics: default

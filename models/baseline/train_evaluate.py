@@ -4,13 +4,14 @@ import logging
 from typing import Union
 
 import hydra
-from models.baseline.age_classifier import (
-    train_age_classifier_model_and_evaluate_with_mlflow,
+from omegaconf import DictConfig, OmegaConf
+
+from models.baseline.age_meds_classifier import (
+    train_age_meds_classifier_model_and_evaluate_with_mlflow,
 )
 from models.baseline.random_classifier import (
     train_random_classifier_model_and_evaluate_with_mlflow,
 )
-from omegaconf import DictConfig, OmegaConf
 from src.utils.notebook_utils import in_notebook
 
 az_http_logger = logging.getLogger("azure.core.pipeline.policies.http_logging_policy")
@@ -34,7 +35,7 @@ def train_evaluate_notebook(cfg: DictConfig = None):
     with hydra.initialize(config_path="../conf", version_base=None):
         cfg = hydra.compose(config_name="baseline_config") if cfg is None else cfg
         train_random_classifier_model_and_evaluate_with_mlflow(cfg)
-        train_age_classifier_model_and_evaluate_with_mlflow(cfg)
+        train_age_meds_classifier_model_and_evaluate_with_mlflow(cfg)
         return cfg
 
 
@@ -42,7 +43,7 @@ def train_evaluate_notebook(cfg: DictConfig = None):
 def train_evaluate_hydra(cfg: DictConfig):
     "Train Model on command line using default config."
     train_random_classifier_model_and_evaluate_with_mlflow(cfg)
-    train_age_classifier_model_and_evaluate_with_mlflow(cfg)
+    train_age_meds_classifier_model_and_evaluate_with_mlflow(cfg)
 
 
 if __name__ == "__main__":

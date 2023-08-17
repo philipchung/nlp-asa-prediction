@@ -1,21 +1,21 @@
 rf:
-  procedure: 1
-  diagnosis: 1
-  hpi: 1
-  ros: 1
-  pmsh: 1
-  meds: 1
-  note: 1
-  note512: 2
-svm:
-  procedure: 5
+  procedure: 2
   diagnosis: 2
   hpi: 2
-  ros: 4
-  pmsh: 1
-  meds: 1
-  note: 1
-  note512: 2
+  ros: 2
+  pmsh: 2
+  meds: 2
+  note: 2
+  note512: 3
+svm:
+  procedure: 6
+  diagnosis: 3
+  hpi: 3
+  ros: 5
+  pmsh: 2
+  meds: 2
+  note: 2
+  note512: 3
 fasttext:
   procedure: 9
   diagnosis: 2
@@ -34,7 +34,7 @@ bioclinicalbert:
   meds: 2
   note: 3
   note512: 1
-age_classifier:
-  note512: 1
+age_meds_classifier:
+  note512: 2
 random_classifier:
-  note512: 1
+  note512: 2

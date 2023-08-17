@@ -21,12 +21,26 @@ __maintainer__ = "Ross Kleiman"
 __email__ = "rkleiman@cs.wisc.edu"
 __status__ = "Production"
 
-import numpy as np
-from sklearn.metrics import roc_auc_score
 import warnings
+from typing import Union
+
+import numpy as np
+import torch
+from sklearn.metrics import roc_auc_score
+
+
+def multiclass_aucmu(
+    preds: Union[torch.tensor, np.ndarray], target: Union[torch.tensor, np.ndarray], **kwargs
+) -> float:
+    "Wrapper for `auc_mu` so arguments follow the `preds` and `target` convention."
+    y_score = preds.cpu().numpy()
+    y_true = target.cpu().numpy()
+    auc_mu_value = auc_mu(y_true=y_true, y_score=y_score, **kwargs)
+    return torch.tensor(auc_mu_value, dtype=torch.float)
+
 
 # ----------------------------------------------------------------------
-def auc_mu(y_true, y_score, A=None, W=None):
+def auc_mu(y_true, y_score, A=None, W=None) -> float:
     """
     Compute the multi-class measure AUC Mu from prediction scores and labels.
 
@@ -78,8 +92,7 @@ def auc_mu(y_true, y_score, A=None, W=None):
         raise ValueError("Expected y_true to be 1 dimensional, got: %s" % y_true.ndim)
     if not y_true.shape[0] == n_samples:
         raise ValueError(
-            "Expected y_true to be shape %s, got: %s"
-            % (str(y_score.shape), str(y_true.shape))
+            "Expected y_true to be shape %s, got: %s" % (str(y_score.shape), str(y_true.shape))
         )
     unique_labels = np.unique(y_true)
     if not np.all(unique_labels == np.arange(n_classes)):
@@ -99,8 +112,7 @@ def auc_mu(y_true, y_score, A=None, W=None):
         raise ValueError("Expected A to be 2 dimensional, got: %s" % A.ndim)
     if not A.shape == (n_classes, n_classes):
         raise ValueError(
-            "Expected A to be shape (%i, %i), got: %s"
-            % (n_classes, n_classes, str(A.shape))
+            "Expected A to be shape (%i, %i), got: %s" % (n_classes, n_classes, str(A.shape))
         )
     if not np.all(A.diagonal() == np.zeros(n_classes)):
         raise ValueError("Expected A to be zero on the diagonals")
@@ -116,8 +128,7 @@ def auc_mu(y_true, y_score, A=None, W=None):
         raise ValueError("Expected W to be 2 dimensional, got: %s" % W.ndim)
     if not W.shape == (n_classes, n_classes):
         raise ValueError(
-            "Expected W to be shape (%i, %i), got: %s"
-            % (n_classes, n_classes, str(W.shape))
+            "Expected W to be shape (%i, %i), got: %s" % (n_classes, n_classes, str(W.shape))
         )
 
     auc_total = 0.0
@@ -126,7 +137,6 @@ def auc_mu(y_true, y_score, A=None, W=None):
         preds_i = y_score[y_true == class_i]
         n_i = preds_i.shape[0]
         for class_j in range(class_i):
-
             preds_j = y_score[y_true == class_j]
             temp_preds = np.vstack((preds_i, preds_j))
             n_j = preds_j.shape[0]

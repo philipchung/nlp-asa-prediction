@@ -54,6 +54,7 @@ def test_fasttext_model(
         dataset=datamodule.test,
         id2label=datamodule.asa_id2label,
         whitelist=cfg.metrics.whitelist,
+        bootstrap_std_error=cfg.metrics.bootstrap_std_error
     )
     test_metrics = format_all(
         metrics=test_metrics,

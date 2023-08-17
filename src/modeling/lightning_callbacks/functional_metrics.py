@@ -31,6 +31,7 @@ class FunctionalMetrics(Callback):
         gpu: bool = True,
         k: int = 10,
         whitelist: Union[list[str], dict[str, Any], DictConfig[str, Any]] = None,
+        bootstrap_std_error: bool = False,
     ):
         self.what = what
         self._target = what.lower()
@@ -44,6 +45,7 @@ class FunctionalMetrics(Callback):
         self.gpu = gpu
         self.k = k
         self.whitelist = whitelist
+        self.bootstrap_std_error = bootstrap_std_error
         self.state = {
             "train": {"labels": [], "logits": [], "predictions": []},
             "validation": {"labels": [], "logits": [], "predictions": []},
@@ -99,6 +101,7 @@ class FunctionalMetrics(Callback):
             dataset=getattr(trainer.datamodule, split),
             id2label=self.id2label,
             whitelist=self.whitelist,
+            bootstrap_std_error=self.bootstrap_std_error,
         )
         metrics = format_all(
             metrics=metrics,

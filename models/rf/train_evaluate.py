@@ -8,10 +8,11 @@ import hydra
 import mlflow
 from azureml.core import Workspace
 from mlflow.utils.mlflow_tags import MLFLOW_PARENT_RUN_ID
+from omegaconf import DictConfig, OmegaConf
+
 from models.rf.test import test_rf_model_with_mlflow
 from models.rf.train import train_rf_model_with_mlflow
 from models.utils import resolve_paths_and_save_config
-from omegaconf import DictConfig, OmegaConf
 from src.modeling.mlflow import (
     get_best_child_run,
     log_mlflow_model,

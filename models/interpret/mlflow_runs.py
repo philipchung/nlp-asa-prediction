@@ -142,6 +142,6 @@ def get_baseline_runs() -> dict[str, mlflow.entities.Run]:
     mlflow.set_tracking_uri(mlflow_uri)
 
     random_classifier = mlflow.get_run(run_id=baseline_run_ids.random_classifier.test)
-    age_classifier = mlflow.get_run(run_id=baseline_run_ids.age_classifier.test)
+    age_meds_classifier = mlflow.get_run(run_id=baseline_run_ids.age_meds_classifier.test)
 
-    return {"random_classifier": random_classifier, "age_classifier": age_classifier}
+    return {"random_classifier": random_classifier, "age_meds_classifier": age_meds_classifier}

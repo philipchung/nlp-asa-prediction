@@ -1,8 +1,10 @@
 from __future__ import annotations
-from typing import Union, Iterable
-from tqdm.auto import tqdm
+
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from multiprocessing import cpu_count
+from typing import Iterable, Union
+
+from tqdm.auto import tqdm
 
 
 def parallel_process(
@@ -11,6 +13,7 @@ def parallel_process(
     n_jobs: int = cpu_count(),
     use_args: bool = False,
     use_kwargs: bool = False,
+    pbar: bool = True,
     desc: str = "",
 ):
     """
@@ -30,6 +33,7 @@ def parallel_process(
         use_kwargs (boolean, default=False): Whether to consider the elements of array as dictionaries of
             keyword arguments to pass into function.  Set this to True if function has multiple arguments
             and you want to pass arguments to function by keyword (does not need to be in-order).
+        pbar (bool, default=True): Whether to display progress bar.
         desc (string, default=""): Description on progress bar
     Returns:
         [function(iterable[0]), function(iterable[1]), ...]
@@ -64,9 +68,11 @@ def parallel_process(
             pass
     out = []
     # Get the results from the futures.
-    for i, future in tqdm(
-        enumerate(futures), desc=f"{desc} (Completed)", dynamic_ncols=True
-    ):
+    if pbar:
+        it = tqdm(enumerate(futures), desc=f"{desc} (Completed)", dynamic_ncols=True)
+    else:
+        it = enumerate(futures)
+    for i, future in it:
         try:
             out += [future.result()]
         except Exception as e:

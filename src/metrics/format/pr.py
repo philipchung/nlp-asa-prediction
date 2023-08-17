@@ -44,6 +44,7 @@ def format_plotly_pr_curve(
                 and ("MACRO" not in k.upper())
                 and ("MICRO" not in k.upper())
                 and ("WEIGHTED" not in k.upper())
+                and ("SE" not in k.upper())
             )
         }
     else:

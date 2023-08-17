@@ -42,6 +42,7 @@ def format_plotly_roc_curve(
                 and ("MICRO" not in k.upper())
                 and ("WEIGHTED" not in k.upper())
                 and ("AUCMU" not in k.upper())
+                and ("SE" not in k.upper())
             )
         }
     else:

@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 from typing import Any, Union
 
 from omegaconf import DictConfig, OmegaConf
+
 from src.utils.list_utils import flatten_list_of_list
 
 
@@ -35,10 +37,9 @@ def filter_by_whitelist(
 
 
 def expand_classwise_whitelist(
-    metrics: dict[str, Any],
     class_labels: list,
     whitelist: Union[dict, DictConfig],
-):
+) -> dict | DictConfig:
     """Expands classwise names in whitelist by appending `/class_label` to it.
     Non-classwise names are not manipulated.
     This method only works for dict whitelists, supporting depth of 2.
@@ -64,3 +65,11 @@ def expand_classwise_whitelist(
     else:
         raise ValueError("Unknown type for argument `whitelist`.")
     return whitelist
+
+
+def flatten_whitelist_dict(whitelist: Union[dict, DictConfig]) -> list:
+    "Flatten values in dict into a list."
+    # If DictConfig, transform into dict
+    if isinstance(whitelist, DictConfig):
+        whitelist = OmegaConf.to_container(whitelist, resolve=True)
+    return flatten_list_of_list(v for k, v in whitelist.items())

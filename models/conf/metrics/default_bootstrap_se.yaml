@@ -17,23 +17,23 @@ whitelist:
   aggregate:
     - Precision/Micro
     - Precision/Macro
-    - Precision/Weighted
+    # - Precision/Weighted
     - Recall/Micro
     - Recall/Macro
-    - Recall/Weighted
+    # - Recall/Weighted
     - F1/Micro
     - F1/Macro
-    - F1/Weighted
+    # - F1/Weighted
     - MCC/MCC
-    - CohenKappa/Unweighted
-    - CohenKappa/WeightedLinear
-    - CohenKappa/WeightedQuadratic
+    # - CohenKappa/Unweighted
+    # - CohenKappa/WeightedLinear
+    # - CohenKappa/WeightedQuadratic
     - AUPRC/Macro
-    - AUPRC/Weighted
+    # - AUPRC/Weighted
     - PrecisionRecallCurve
     - ROC
     - AUROC/Macro
-    - AUROC/Weighted
+    # - AUROC/Weighted
     - AUROC/AUCmu
   confusion:
     - ConfusionMatrix/Raw
@@ -41,7 +41,7 @@ whitelist:
     - ConfusionMatrix/NormalizeOverPredictions
     - ConfusionMatrix/NormalizeOverAll
   examples:
-    - Examples/Easiest
-    - Examples/Hardest
-examples_top_k: 10
-bootstrap_std_error: False
+#     - Examples/Easiest
+#     - Examples/Hardest
+examples_top_k: 
+bootstrap_std_error: True

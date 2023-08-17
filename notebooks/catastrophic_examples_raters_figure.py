@@ -1,13 +1,14 @@
-#%%
+# %%
 import matplotlib
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import seaborn as sns
+import torch
+from torchmetrics.functional import mean_absolute_error
 
 pd.options.display.float_format = "{:,.3f}".format
 
-#%% [markdown]
+# %% [markdown]
 # ## Load Human-Annotated Dataset
 # Legend (ASA-PS = Numeric Scale = Dataset Mapped Value):
 # * ASA I = 1 = 0
@@ -15,7 +16,7 @@ pd.options.display.float_format = "{:,.3f}".format
 # * ASA III = 3 = 2
 # * ASA IV = 4 = 3
 # * ASA V = 4 = 3
-#%%
+# %%
 df = pd.read_csv("error_analysis_annotated_dataset.tsv", sep="\t")
 # Drop NaN rows
 df = df.dropna(how="all", axis=0)
@@ -43,7 +44,7 @@ df["rater_mean"] = df.loc[:, ["rater0", "rater1", "rater2"]].mean(axis=1)
 df["rater_std"] = df.loc[:, ["rater0", "rater1", "rater2"]].std(axis=1)
 df
 
-#%%
+# %%
 # All examples where Actual=I, Predicted=IV-V
 target1_pred4_examples = df.loc[df.label == 1, :]
 # All examples where Actual=IV-V, Predicted=I
@@ -131,4 +132,22 @@ fig.savefig(
     bbox_inches="tight",
 )
 
+# %%
+# Mean absolute error between mean of Rater ASA-PS vs. Label
+preds = torch.from_numpy(df.rater_mean.astype(float).to_numpy())
+target = torch.from_numpy(df.label.astype(float).to_numpy())
+rater_mean_pearson_corr = mean_absolute_error(preds=preds, target=target)
+print("Rater Mean vs. Label MAE:", rater_mean_pearson_corr)
+# %%
+# Mean absolute error between Model Prediction vs. Label
+preds = torch.from_numpy(df.model_preds.astype(float).to_numpy())
+target = torch.from_numpy(df.label.astype(float).to_numpy())
+model_preds_pearson_corr = mean_absolute_error(preds=preds, target=target)
+print("Model Prediction vs. Label MAE:", model_preds_pearson_corr)
+# %%
+# Mean absolute error between Rater ASA-PS vs. Model Prediction
+preds = torch.from_numpy(df.rater_mean.astype(float).to_numpy())
+target = torch.from_numpy(df.model_preds.astype(float).to_numpy())
+model_preds_pearson_corr = mean_absolute_error(preds=preds, target=target)
+print("Rater vs. Model Prediction MAE:", model_preds_pearson_corr)
 # %%

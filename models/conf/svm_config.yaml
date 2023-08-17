@@ -4,5 +4,5 @@ defaults:
   - mlflow: base
   - datamodule: bioclinicalbert
   - model: svm
-  - metrics: all
+  - metrics: default
   - evaluate: base

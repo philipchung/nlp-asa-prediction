@@ -361,7 +361,7 @@ class MakeDataset:
         and ASA Physical Status Classification assigned on day of surgery.
         """
 
-        _HOMEPAGE = "https://github.com/philipchung/nlp-asa-prediction/"
+        _HOMEPAGE = "https://github.com/philipchung/presurgnlp-az/"
 
         license_path = (
             Path(self.project_dir / "LICENSE") if license_path is None else license_path

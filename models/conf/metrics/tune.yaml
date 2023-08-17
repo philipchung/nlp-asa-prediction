@@ -43,3 +43,4 @@ whitelist:
   #   - Examples/Easiest
   #   - Examples/Hardest
 examples_top_k: 10
+bootstrap_std_error: False

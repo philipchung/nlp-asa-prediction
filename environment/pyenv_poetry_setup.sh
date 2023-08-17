@@ -20,14 +20,6 @@ if [[ "${TRACE-0}" == "1" ]]; then
     set -o xtrace;
 fi
 
-### --- Environment Variables --- ###
-# Azure CloudFiles are mounted & symlinked as a dir within $HOME.  This path is referenced as CLOUDFILES_HOME
-# Note: default user in Azure Compute Instance is `azureuser`, not USERNAME.
-export USERNAME=""   #fill in username
-export PROJECT_NAME="nlp-asa-prediction"
-export CLOUDFILES_HOME="/home/azureuser/cloudfiles/code/Users/${USERNAME}"
-export PROJECT_PATH="${CLOUDFILES_HOME}/${PROJECT_NAME}"
-
 ### --- Deactivate Conda --- ###
 # Azure Compute Instances are docker containers that have preconfigured conda environments
 # that are used by default.  We deactivate all conda environments so we don't use a
@@ -61,7 +53,7 @@ export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
-export GLOBAL_PYTHON_VERSION="3.8.10"
+export GLOBAL_PYTHON_VERSION="3.10.10"
 pyenv install ${GLOBAL_PYTHON_VERSION}
 pyenv global ${GLOBAL_PYTHON_VERSION}
 
@@ -71,10 +63,18 @@ curl -sSL https://install.python-poetry.org | ${PYENV_ROOT}/versions/${GLOBAL_PY
 # Add Poetry installation to $PATH
 export PATH="/home/azureuser/.local/bin:$PATH"
 
+# Environment Variables
+# Azure CloudFiles are mounted & symlinked as a dir within $HOME.  This path is referenced as CLOUDFILES_HOME
+# Note: default user in Azure Compute Instance is `azureuser`, not USERNAME.
+export USERNAME="chungph"
+export PROJECT_NAME="presurgnlp-az"
+export CLOUDFILES_HOME="/home/azureuser/cloudfiles/code/Users/${USERNAME}"
+export PROJECT_PATH="${CLOUDFILES_HOME}/${PROJECT_NAME}"
+
 # Go to Project Directory
 cd ${PROJECT_PATH}
 # Use pyenv to install & specify local python version (only used in this Directory)
-LOCAL_PYTHON_VERSION="3.8.10"
+LOCAL_PYTHON_VERSION="3.10.10"
 if [[ "${LOCAL_PYTHON_VERSION}" != "${GLOBAL_PYTHON_VERSION}" ]]; then
     pyenv install ${LOCAL_PYTHON_VERSION};
 fi
@@ -93,7 +93,7 @@ poetry install
 # install command, which is defined in pyproject.toml under [tool.poe.tasks]
 # If `poetry install` or `poetry update` is called, this line needs to be re-run.
 poetry run poe force-pytorch-cuda113
-poetry run poe install-ray-tune210
+# poetry run poe install-ray-tune210
 
 # Export environment as standard requirements.txt using pip
 poetry run pip freeze > requirements.txt

@@ -1,20 +1,12 @@
 from __future__ import annotations
 
+import logging
 from typing import Any, Union
 
 import numpy as np
 import pandas as pd
 import torch
 from omegaconf import DictConfig
-from src.metrics.functional.loss import compute_cross_entropy_loss
-from src.metrics.functional.top_examples import easiest_hardest_examples
-from src.metrics.metrics import auc_mu
-from src.metrics.utils import (
-    arraylike_to_tensor,
-    unpack_classwise_metrics,
-    unpack_statscores,
-)
-from src.metrics.whitelist import filter_by_whitelist
 from torch.nn.functional import softmax
 from torchmetrics.functional.classification import (
     multiclass_auroc,
@@ -31,87 +23,260 @@ from torchmetrics.functional.classification import (
     multiclass_stat_scores,
 )
 
+from src.metrics.functional.bootstrap_std_error import (
+    unpack_bootstrap_metric_result,
+    wrap_bootstrap_std_error,
+)
+from src.metrics.functional.loss import compute_cross_entropy_loss
+from src.metrics.functional.top_examples import easiest_hardest_examples
+from src.metrics.metrics.auc_mu import multiclass_aucmu
+from src.metrics.utils import (
+    arraylike_to_tensor,
+    unpack_classwise_metrics,
+    unpack_statscores,
+)
+from src.metrics.whitelist import flatten_whitelist_dict
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.WARNING)
+
 
 def classwise_statistic_metrics(
     preds: Union[np.ndarray, torch.Tensor],
     target: Union[np.ndarray, torch.Tensor],
     num_classes: int = 4,
     class_labels: list = None,
+    bootstrap_std_error: bool = True,
+    metric_names: list[str] = ["StatScores", "Precision", "Recall", "F1"],
 ) -> dict[str, torch.Tensor]:
     preds = arraylike_to_tensor(preds)
     target = arraylike_to_tensor(target)
-    # Statscores (TP,FP,TN,FN,Support) outputs tensor shape (C,5), with C=num_classes.
-    statscores = multiclass_stat_scores(
-        preds=preds, target=target, num_classes=num_classes, average=None
-    )
-    # Convert to {"TP: [class0, class1, ..., classN]", "FP": [...], "TN": [...], "FN": [...]}
-    statscores_dict = unpack_statscores(statscores)
 
-    # Each statistic outputs tensor shape (C,), with C=num_classes
-    classwise_metrics = {
-        **statscores_dict,
-        "Precision": multiclass_precision(
-            preds=preds, target=target, num_classes=num_classes, average=None
-        ),
-        "Recall": multiclass_recall(
-            preds=preds, target=target, num_classes=num_classes, average=None
-        ),
-        "F1": multiclass_f1_score(
-            preds=preds, target=target, num_classes=num_classes, average=None
-        ),
-    }
-    return unpack_classwise_metrics(classwise_metrics, class_labels)
+    # Optionally Compute Version of Metric w/ Bootstrapped Standard Errors
+    if bootstrap_std_error:
+        multiclass_precision_fn = wrap_bootstrap_std_error(multiclass_precision)
+        multiclass_recall_fn = wrap_bootstrap_std_error(multiclass_recall)
+        multiclass_f1_score_fn = wrap_bootstrap_std_error(multiclass_f1_score)
+    else:
+        multiclass_precision_fn = multiclass_precision
+        multiclass_recall_fn = multiclass_recall
+        multiclass_f1_score_fn = multiclass_f1_score
+
+    # StatScores computes TP/FP/TN/FN/Support all at once
+    if any(x in ("TP", "FP", "TN", "FN", "Support") for x in metric_names):
+        metric_names = [
+            x for x in metric_names if x not in ("TP", "FP", "TN", "FN", "Support")
+        ]
+        metric_names += ["StatScores"]
+
+    # Compute each selected metric
+    metrics = {}
+    for metric_name in metric_names:
+        match metric_name:
+            case "StatScores":
+                # Statscores (TP,FP,TN,FN,Support) outputs tensor shape (C,5),
+                # with C=num_classes.
+                statscores = multiclass_stat_scores(
+                    preds=preds, target=target, num_classes=num_classes, average=None
+                )
+                # Convert to {"TP: [class0, class1, ..., classN]",
+                # "FP": [...],
+                # "TN": [...],
+                # "FN": [...],
+                # "Support": [...]}
+                statscores_dict = unpack_statscores(statscores)
+                metrics |= statscores_dict
+            case "Precision":
+                metrics |= {
+                    "Precision": multiclass_precision_fn(
+                        preds=preds,
+                        target=target,
+                        num_classes=num_classes,
+                        average=None,
+                    )
+                }
+            case "Recall":
+                metrics |= {
+                    "Recall": multiclass_recall_fn(
+                        preds=preds,
+                        target=target,
+                        num_classes=num_classes,
+                        average=None,
+                    )
+                }
+            case "F1":
+                metrics |= {
+                    "F1": multiclass_f1_score_fn(
+                        preds=preds,
+                        target=target,
+                        num_classes=num_classes,
+                        average=None,
+                    )
+                }
+
+    # Flatten Nested Bootstrap Results
+    metrics = unpack_bootstrap_metric_result(metrics)
+    # For metrics with tensor shape (C,) output, unpack each item in tensor
+    # into its own metric and label with class labels.
+    metrics = unpack_classwise_metrics(metrics, class_labels)
+    return metrics
 
 
 def class_aggregate_statistic_metrics(
     preds: Union[np.ndarray, torch.Tensor],
     target: Union[np.ndarray, torch.Tensor],
     num_classes: int = 4,
+    bootstrap_std_error: bool = True,
+    metric_names: list[str] = [
+        "Precision/Micro",
+        "Precision/Macro",
+        "Recall/Micro",
+        "Recall/Macro",
+        "F1/Micro",
+        "F1/Macro",
+        "MCC/MCC",
+    ],
 ) -> dict[str, torch.Tensor]:
     preds = arraylike_to_tensor(preds)
     target = arraylike_to_tensor(target)
-    class_aggregate_metrics = {
-        "Precision/Micro": multiclass_precision(
-            preds=preds, target=target, num_classes=num_classes, average="micro"
-        ),
-        "Precision/Macro": multiclass_precision(
-            preds=preds, target=target, num_classes=num_classes, average="macro"
-        ),
-        "Precision/Weighted": multiclass_precision(
-            preds=preds, target=target, num_classes=num_classes, average="weighted"
-        ),
-        "Recall/Micro": multiclass_recall(
-            preds=preds, target=target, num_classes=num_classes, average="micro"
-        ),
-        "Recall/Macro": multiclass_recall(
-            preds=preds, target=target, num_classes=num_classes, average="macro"
-        ),
-        "Recall/Weighted": multiclass_recall(
-            preds=preds, target=target, num_classes=num_classes, average="weighted"
-        ),
-        "F1/Micro": multiclass_f1_score(
-            preds=preds, target=target, num_classes=num_classes, average="micro"
-        ),
-        "F1/Macro": multiclass_f1_score(
-            preds=preds, target=target, num_classes=num_classes, average="macro"
-        ),
-        "F1/Weighted": multiclass_f1_score(
-            preds=preds, target=target, num_classes=num_classes, average="weighted"
-        ),
-        "MCC/MCC": multiclass_matthews_corrcoef(
-            preds=preds, target=target, num_classes=num_classes
-        ),
-        "CohenKappa/Unweighted": multiclass_cohen_kappa(
-            preds=preds, target=target, num_classes=num_classes, weights=None
-        ),
-        "CohenKappa/WeightedLinear": multiclass_cohen_kappa(
-            preds=preds, target=target, num_classes=num_classes, weights="linear"
-        ),
-        "CohenKappa/WeightedQuadratic": multiclass_cohen_kappa(
-            preds=preds, target=target, num_classes=num_classes, weights="quadratic"
-        ),
-    }
-    return class_aggregate_metrics
+
+    # Optionally Compute Version of Metric w/ Bootstrapped Standard Errors
+    if bootstrap_std_error:
+        multiclass_precision_fn = wrap_bootstrap_std_error(multiclass_precision)
+        multiclass_recall_fn = wrap_bootstrap_std_error(multiclass_recall)
+        multiclass_f1_score_fn = wrap_bootstrap_std_error(multiclass_f1_score)
+        multiclass_matthews_corrcoef_fn = wrap_bootstrap_std_error(
+            multiclass_matthews_corrcoef
+        )
+        multiclass_cohen_kappa_fn = wrap_bootstrap_std_error(multiclass_cohen_kappa)
+    else:
+        multiclass_precision_fn = multiclass_precision
+        multiclass_recall_fn = multiclass_recall
+        multiclass_f1_score_fn = multiclass_f1_score
+        multiclass_matthews_corrcoef_fn = multiclass_matthews_corrcoef
+        multiclass_cohen_kappa_fn = multiclass_cohen_kappa
+
+    # Compute each selected metric
+    metrics = {}
+    for metric_name in metric_names:
+        match metric_name:
+            case "Precision/Micro":
+                metrics |= {
+                    "Precision/Micro": multiclass_precision_fn(
+                        preds=preds,
+                        target=target,
+                        num_classes=num_classes,
+                        average="micro",
+                    )
+                }
+            case "Precision/Macro":
+                metrics |= {
+                    "Precision/Macro": multiclass_precision_fn(
+                        preds=preds,
+                        target=target,
+                        num_classes=num_classes,
+                        average="macro",
+                    )
+                }
+            case "Precision/Weighted":
+                metrics |= {
+                    "Precision/Weighted": multiclass_precision_fn(
+                        preds=preds,
+                        target=target,
+                        num_classes=num_classes,
+                        average="weighted",
+                    )
+                }
+            case "Recall/Micro":
+                metrics |= {
+                    "Recall/Micro": multiclass_recall_fn(
+                        preds=preds,
+                        target=target,
+                        num_classes=num_classes,
+                        average="micro",
+                    )
+                }
+            case "Recall/Macro":
+                metrics |= {
+                    "Recall/Macro": multiclass_recall_fn(
+                        preds=preds,
+                        target=target,
+                        num_classes=num_classes,
+                        average="macro",
+                    )
+                }
+            case "Recall/Weighted":
+                metrics |= {
+                    "Recall/Weighted": multiclass_recall_fn(
+                        preds=preds,
+                        target=target,
+                        num_classes=num_classes,
+                        average="weighted",
+                    )
+                }
+            case "F1/Micro":
+                metrics |= {
+                    "F1/Micro": multiclass_f1_score_fn(
+                        preds=preds,
+                        target=target,
+                        num_classes=num_classes,
+                        average="micro",
+                    )
+                }
+            case "F1/Macro":
+                metrics |= {
+                    "F1/Macro": multiclass_f1_score_fn(
+                        preds=preds,
+                        target=target,
+                        num_classes=num_classes,
+                        average="macro",
+                    )
+                }
+            case "F1/Weighted":
+                metrics |= {
+                    "F1/Weighted": multiclass_f1_score_fn(
+                        preds=preds,
+                        target=target,
+                        num_classes=num_classes,
+                        average="weighted",
+                    )
+                }
+            case "MCC/MCC":
+                metrics |= {
+                    "MCC/MCC": multiclass_matthews_corrcoef_fn(
+                        preds=preds, target=target, num_classes=num_classes
+                    )
+                }
+            case "CohenKappa/Unweighted":
+                metrics |= {
+                    "CohenKappa/Unweighted": multiclass_cohen_kappa_fn(
+                        preds=preds,
+                        target=target,
+                        num_classes=num_classes,
+                        weights=None,
+                    )
+                }
+            case "CohenKappa/WeightedLinear":
+                metrics |= {
+                    "CohenKappa/WeightedLinear": multiclass_cohen_kappa_fn(
+                        preds=preds,
+                        target=target,
+                        num_classes=num_classes,
+                        weights="linear",
+                    )
+                }
+            case "CohenKappa/WeightedQuadratic":
+                metrics |= {
+                    "CohenKappa/WeightedQuadratic": multiclass_cohen_kappa_fn(
+                        preds=preds,
+                        target=target,
+                        num_classes=num_classes,
+                        weights="quadratic",
+                    )
+                }
+    # Flatten Nested Bootstrap Results
+    metrics = unpack_bootstrap_metric_result(metrics)
+    return metrics
 
 
 def roc_metrics(
@@ -119,46 +284,95 @@ def roc_metrics(
     target: Union[np.ndarray, torch.Tensor],
     num_classes: int = 4,
     class_labels: list = None,
+    bootstrap_std_error: bool = True,
+    metric_names: list[str] = [
+        "ROC",
+        "AUROC",
+        "AUROC/Macro",
+        "AUROC/AUCmu",
+    ],
 ) -> dict[str, torch.Tensor]:
     pred_proba = arraylike_to_tensor(pred_proba)
     target = arraylike_to_tensor(target)
-    roc_classwise_metrics = {
-        "AUROC": multiclass_auroc(
-            preds=pred_proba,
-            target=target,
-            num_classes=num_classes,
-            average=None,
-            thresholds=None,
-        ),
-    }
-    roc_classwise_metrics = unpack_classwise_metrics(
-        roc_classwise_metrics, class_labels
-    )
-    roc_class_aggregate_metrics = {
-        "ROC": multiclass_roc(
-            preds=pred_proba, target=target, num_classes=num_classes, thresholds=None
-        ),
-        "AUROC/Macro": multiclass_auroc(
-            preds=pred_proba,
-            target=target,
-            num_classes=num_classes,
-            average="macro",
-            thresholds=None,
-        ),
-        "AUROC/Weighted": multiclass_auroc(
-            preds=pred_proba,
-            target=target,
-            num_classes=num_classes,
-            average="weighted",
-            thresholds=None,
-        ),
-        "AUROC/AUCmu": torch.tensor(
-            auc_mu(y_score=pred_proba.cpu().numpy(), y_true=target.cpu().numpy()),
-            dtype=torch.float,
-        ),
-    }
-    roc_metrics = {**roc_classwise_metrics, **roc_class_aggregate_metrics}
-    return roc_metrics
+
+    # Optionally Compute Version of Metric w/ Bootstrapped Standard Errors
+    if bootstrap_std_error:
+        multiclass_auroc_fn = wrap_bootstrap_std_error(multiclass_auroc)
+        multiclass_aucmu_fn = wrap_bootstrap_std_error(multiclass_aucmu)
+
+    else:
+        multiclass_auroc_fn = multiclass_auroc
+        multiclass_aucmu_fn = multiclass_aucmu
+
+    # Compute each selected metric
+    roc_curve = {}
+    if "ROC" in metric_names:
+        # Compute ROC Curve separately since we don't want to unpack the results
+        roc_curve |= {
+            "ROC": multiclass_roc(
+                preds=pred_proba,
+                target=target,
+                num_classes=num_classes,
+                thresholds=None,
+            )
+        }
+        metric_names.remove("ROC")
+
+    metrics = {}
+    for metric_name in metric_names:
+        match metric_name:
+            case "AUROC":
+                m = {
+                    "AUROC": multiclass_auroc_fn(
+                        preds=pred_proba,
+                        target=target,
+                        num_classes=num_classes,
+                        average=None,
+                        thresholds=None,
+                    )
+                }
+                # Flatten Nested Bootstrap Results
+                m = unpack_bootstrap_metric_result(m)
+                # For metrics with tensor shape (C,) output, unpack each item in tensor
+                # into its own metric and label with class labels.
+                m = unpack_classwise_metrics(m, class_labels)
+                metrics |= m
+            case "AUROC/Macro":
+                m = {
+                    "AUROC/Macro": multiclass_auroc_fn(
+                        preds=pred_proba,
+                        target=target,
+                        num_classes=num_classes,
+                        average="macro",
+                        thresholds=None,
+                    )
+                }
+                # Flatten Nested Bootstrap Results
+                m = unpack_bootstrap_metric_result(m)
+                metrics |= m
+            case "AUROC/Weighted":
+                m = {
+                    "AUROC/Weighted": multiclass_auroc_fn(
+                        preds=pred_proba,
+                        target=target,
+                        num_classes=num_classes,
+                        average="weighted",
+                        thresholds=None,
+                    )
+                }
+                # Flatten Nested Bootstrap Results
+                m = unpack_bootstrap_metric_result(m)
+                metrics |= m
+            case "AUROC/AUCmu":
+                m = {
+                    "AUROC/AUCmu": multiclass_aucmu_fn(preds=pred_proba, target=target)
+                }
+                # Flatten Nested Bootstrap Results
+                m = unpack_bootstrap_metric_result(m)
+                metrics |= m
+
+    metrics = roc_curve | metrics
+    return metrics
 
 
 def pr_metrics(
@@ -166,40 +380,87 @@ def pr_metrics(
     target: Union[np.ndarray, torch.Tensor],
     num_classes: int = 4,
     class_labels: list = None,
+    bootstrap_std_error: bool = True,
+    metric_names: list[str] = [
+        "PrecisionRecallCurve",
+        "AUPRC",
+        "AUPRC/Macro",
+    ],
 ) -> dict[str, torch.Tensor]:
     pred_proba = arraylike_to_tensor(pred_proba)
     target = arraylike_to_tensor(target)
-    pr_classwise_metrics = {
-        "AUPRC": multiclass_average_precision(
-            preds=pred_proba,
-            target=target,
-            num_classes=num_classes,
-            average=None,
-            thresholds=None,
-        ),
-    }
-    pr_classwise_metrics = unpack_classwise_metrics(pr_classwise_metrics, class_labels)
-    pr_class_aggregate_metrics = {
-        "PrecisionRecallCurve": multiclass_precision_recall_curve(
-            preds=pred_proba, target=target, num_classes=num_classes, thresholds=None
-        ),
-        "AUPRC/Macro": multiclass_average_precision(
-            preds=pred_proba,
-            target=target,
-            num_classes=num_classes,
-            average="macro",
-            thresholds=None,
-        ),
-        "AUPRC/Weighted": multiclass_average_precision(
-            preds=pred_proba,
-            target=target,
-            num_classes=num_classes,
-            average="weighted",
-            thresholds=None,
-        ),
-    }
-    pr_metrics = {**pr_classwise_metrics, **pr_class_aggregate_metrics}
-    return pr_metrics
+
+    # Optionally Compute Version of Metric w/ Bootstrapped Standard Errors
+    if bootstrap_std_error:
+        multiclass_average_precision_fn = wrap_bootstrap_std_error(
+            multiclass_average_precision
+        )
+
+    else:
+        multiclass_average_precision_fn = multiclass_average_precision
+
+    # Compute each selected metric
+    pr_curve = {}
+    if "PrecisionRecallCurve" in metric_names:
+        # Compute PrecisionRecallCurve separately since we don't want to unpack the results
+        pr_curve |= {
+            "PrecisionRecallCurve": multiclass_precision_recall_curve(
+                preds=pred_proba,
+                target=target,
+                num_classes=num_classes,
+                thresholds=None,
+            )
+        }
+        metric_names.remove("PrecisionRecallCurve")
+
+    metrics = {}
+    for metric_name in metric_names:
+        match metric_name:
+            case "AUPRC":
+                m = {
+                    "AUPRC": multiclass_average_precision_fn(
+                        preds=pred_proba,
+                        target=target,
+                        num_classes=num_classes,
+                        average=None,
+                        thresholds=None,
+                    ),
+                }
+                # Flatten Nested Bootstrap Results
+                m = unpack_bootstrap_metric_result(m)
+                # For metrics with tensor shape (C,) output, unpack each item in tensor
+                # into its own metric and label with class labels.
+                m = unpack_classwise_metrics(m, class_labels)
+                metrics |= m
+            case "AUPRC/Macro":
+                m = {
+                    "AUPRC/Macro": multiclass_average_precision_fn(
+                        preds=pred_proba,
+                        target=target,
+                        num_classes=num_classes,
+                        average="macro",
+                        thresholds=None,
+                    )
+                }
+                # Flatten Nested Bootstrap Results
+                m = unpack_bootstrap_metric_result(m)
+                metrics |= m
+            case "AUPRC/Weighted":
+                m = {
+                    "AUPRC/Weighted": multiclass_average_precision_fn(
+                        preds=pred_proba,
+                        target=target,
+                        num_classes=num_classes,
+                        average="weighted",
+                        thresholds=None,
+                    )
+                }
+                # Flatten Nested Bootstrap Results
+                m = unpack_bootstrap_metric_result(m)
+                metrics |= m
+
+    metrics = pr_curve | metrics
+    return metrics
 
 
 def confusion_matrix_metrics(
@@ -250,10 +511,11 @@ def all_metrics(
     include_loss: bool = True,
     num_classes: int = 4,
     class_labels: list = None,
-    top_k_easiest_hardest: int = None,
+    top_k_easiest_hardest: int | None = None,
     dataset: pd.DataFrame = None,
     id2label: dict[int, str] = None,
     whitelist: Union[list[str], dict[str, Any], DictConfig[str, Any]] = None,
+    bootstrap_std_error: bool = False,
 ) -> dict[str, torch.Tensor]:
     """
     Compute loss and metrics.
@@ -288,8 +550,9 @@ def all_metrics(
             are taken from.  This dataset should have length (N,) and order of examples
             should be conserved with target, pred_proba and pred_score.
         id2label (dict): dictionary that maps class ID to string label
-        whitelist (list, dict, or DictConfig): metrics to output.  All metrics will be
-            computed, but metrics not included in whitelist will be dropped.
+        whitelist (list, dict, or DictConfig): Metrics to be included.
+        bootstrap_std_error (bool):  Whether to compute standard error of metrics.
+            This takes roughly an additional 2-5 seconds per metric.
 
     Returns:
         Dict of metrics.
@@ -308,9 +571,12 @@ def all_metrics(
         else:
             pred_proba = arraylike_to_tensor(pred_proba)
 
+    if isinstance(whitelist, dict) or isinstance(whitelist, DictConfig):
+        whitelist = flatten_whitelist_dict(whitelist)
+
     metrics = {}
     if include_loss:
-        loss_metrics = {
+        metrics |= {
             "CrossEntropyLoss": compute_cross_entropy_loss(
                 inputs=pred_proba,
                 target=target,
@@ -319,8 +585,7 @@ def all_metrics(
         }
         # Hinge loss can only be computed if pred_score is provided
         if pred_score is not None:
-            loss_metrics = {
-                **loss_metrics,
+            metrics |= {
                 "HingeLoss": multiclass_hinge_loss(
                     preds=pred_score,
                     target=target,
@@ -336,31 +601,52 @@ def all_metrics(
                     multiclass_mode="crammer-singer",
                 ),
             }
-        metrics = {**loss_metrics}
 
-    metrics = {
-        **metrics,
-        **classwise_statistic_metrics(preds, target, num_classes, class_labels),
-        **class_aggregate_statistic_metrics(preds, target, num_classes),
-        **roc_metrics(pred_proba, target, num_classes, class_labels),
-        **pr_metrics(pred_proba, target, num_classes, class_labels),
-        **confusion_matrix_metrics(preds, target, num_classes),
-    }
+    metrics |= classwise_statistic_metrics(
+        preds=preds,
+        target=target,
+        num_classes=num_classes,
+        class_labels=class_labels,
+        bootstrap_std_error=bootstrap_std_error,
+        metric_names=whitelist,
+    )
+    metrics |= class_aggregate_statistic_metrics(
+        preds=preds,
+        target=target,
+        num_classes=num_classes,
+        bootstrap_std_error=bootstrap_std_error,
+        metric_names=whitelist,
+    )
+    metrics |= roc_metrics(
+        pred_proba=pred_proba,
+        target=target,
+        num_classes=num_classes,
+        class_labels=class_labels,
+        bootstrap_std_error=bootstrap_std_error,
+        metric_names=whitelist,
+    )
+    metrics |= pr_metrics(
+        pred_proba=pred_proba,
+        target=target,
+        num_classes=num_classes,
+        class_labels=class_labels,
+        bootstrap_std_error=bootstrap_std_error,
+        metric_names=whitelist,
+    )
+    metrics |= confusion_matrix_metrics(
+        preds=preds,
+        target=target,
+        num_classes=num_classes,
+    )
+
     if top_k_easiest_hardest is not None:
-        examples = easiest_hardest_examples(
+        metrics |= easiest_hardest_examples(
             inputs=pred_proba,
             target=target,
             input_score_kind=score_kind,
             k=top_k_easiest_hardest,
             dataset=dataset,
             id2label=id2label,
-        )
-        metrics = {**metrics, **examples}
-
-    # Filter metrics based on whitelist
-    if whitelist:
-        metrics = filter_by_whitelist(
-            metrics=metrics, class_labels=class_labels, whitelist=whitelist
         )
     return metrics
 
@@ -374,10 +660,11 @@ def default_metrics(
     include_loss: bool = True,
     num_classes: int = 4,
     class_labels: list = None,
-    top_k_easiest_hardest: int = None,
+    top_k_easiest_hardest: int | None = None,
     dataset: pd.DataFrame = None,
     id2label: dict[int, str] = None,
     whitelist: list[str] = None,
+    bootstrap_std_error: bool = False,
 ) -> dict[str, torch.Tensor]:
     """
     Compute loss and metrics, except for TP, FP, TN, FN which can be
@@ -397,6 +684,7 @@ def default_metrics(
         dataset=dataset,
         id2label=id2label,
         whitelist=whitelist,
+        bootstrap_std_error=False,
     )
     for k, v in metrics.items():
         if "TP" in k or "FP" in k or "TN" in k or "FN" in k:

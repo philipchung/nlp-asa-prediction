@@ -1,11 +1,5 @@
 # ASA-PS Prediction from Clinical Text
 
-This repository contains code for experiments and figures for the manuscript: 
-
-Preprint: [Prediction of American Society of Anesthesiologists Physical Status Classification from Preoperative Clinical Text Narratives Using Natural Language Processing](https://www.medrxiv.org/content/10.1101/2023.02.03.23285402v1)
-Philip Chung, Christine T. Fong, Andrew M. Walters, Meliha Yetisgen, Vikas N. O'Reilly-Shah
-medRxiv 2023.02.03.23285402; doi: https://doi.org/10.1101/2023.02.03.23285402
-
 ## Task
 
 In this project, we aim to show how free-text clinical narratives from medical notes and free-text from surgery booking fields can be used for perioperative risk stratification.  We use the American Society of Anesthesiologists Physical Status Classification (ASA-PS) score as a surrogate for a patient's underlying medical complexity and general state of health.
@@ -76,6 +70,7 @@ Our dataset contains identifiable patient information and is not publically avai
 * emergency_label: "E" designation (True vs. False)
 
 This data table is used for model training and evaluation.
+
 ### Python Environment
 
 Python environment is managed with:
@@ -283,7 +278,7 @@ python models/bert/train_evaluate.py task=meds-asa mlflow.suffix=_tune1
 python models/bert/train_evaluate.py task=note-asa mlflow.suffix=_tune1
 python models/bert/train_evaluate.py task=note512-asa mlflow.suffix=_tune1
 
-# Evaluate Baseline Models (Random Classifier & Age Classifier)
+# Evaluate Baseline Models (Random Classifier & Age+Meds Classifier)
 python models/baseline/train_evaluate.py task=note512-asa
 ```
 

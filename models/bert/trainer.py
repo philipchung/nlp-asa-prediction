@@ -48,6 +48,7 @@ def make_lightning_trainer_with_callbacks(
                 k=cfg.metrics.examples_top_k,
                 gpu=True,
                 whitelist=cfg.metrics.whitelist,
+                bootstrap_std_error=cfg.metrics.bootstrap_std_error
             ),
             FunctionalMetrics(
                 what="Emergency",
@@ -55,6 +56,7 @@ def make_lightning_trainer_with_callbacks(
                 k=cfg.metrics.examples_top_k,
                 gpu=True,
                 whitelist=cfg.metrics.whitelist,
+                bootstrap_std_error=cfg.metrics.bootstrap_std_error
             ),
             # StochasticWeightAveraging(
             #     swa_lrs=cfg.model.params.swa_lrs,

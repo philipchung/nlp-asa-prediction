@@ -4,5 +4,5 @@ defaults:
   - mlflow: base
   - datamodule: bioclinicalbert
   - model: fasttext
-  - metrics: all
+  - metrics: default
   - evaluate: base
